@@ -1,0 +1,52 @@
+server {
+    listen 80;
+    
+    server_name freereads-lof1.onrender.com;
+
+    # Logs
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    # API routes with proper prefix
+    location /api/v1 {
+        # Point to your existing deployed app
+        proxy_pass https://freereads-lof1.onrender.com;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Add caching for API responses
+        proxy_cache_valid 200 5m;  # Cache successful responses for 5 minutes
+    }
+
+    # Root location for other requests
+    location / {
+        proxy_pass https://freereads-lof1.onrender.com;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Caching for book content
+    location ~ ^/api/v1/books/ {
+        proxy_pass https://freereads-lof1.onrender.com;
+        proxy_cache_valid 200 1d;  # Cache successful responses for 1 day
+        add_header Cache-Control "public, max-age=86400";
+    }
+
+    # Error handling
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+}

@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: freereads-nginx
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    branch: main
+    healthCheckPath: /health
+    healthCheckPort: 8080
+    numInstances: 1
+    domains:
+      - your-custom-domain.com  # If you have a custom domain
+    routes:
+      - type: redirect
+        source: /*
+        destination: https://your-custom-domain.com/$1
+        statusCode: 301
